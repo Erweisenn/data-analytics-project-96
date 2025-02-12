@@ -10,7 +10,7 @@ with all_data as (
         s.medium as utm_medium,
         s.campaign as utm_campaign,
         lower(s.source) as utm_source,
-        row_number() over (
+		row_number() over (
 			partition by s.visitor_id order by s.visit_date desc
         ) as rn
     from sessions as s
@@ -29,9 +29,9 @@ aggregated_data as (
         date(visit_date) as visit_date,
         count(visitor_id) as visitors_count,
         count(case
-			when created_at is not null
+            when created_at is not null
 				then visitor_id
-		end) as leads_count,
+        end) as leads_count,
         count(case
 			when status_id = 142
 				then visitor_id
@@ -75,14 +75,15 @@ select
 from aggregated_data as a
 left join marketing_data as m
 	on
-		a.visit_date = m.visit_date
-		and a.utm_source = m.utm_source
-		and a.utm_medium = m.utm_medium
-		and a.utm_campaign = m.utm_campaign
-order by a.revenue desc nulls last,
-	a.visit_date asc,
-	a.visitors_count desc,
-	a.utm_source asc,
-	a.utm_medium asc,
-	a.utm_campaign asc
+        a.visit_date = m.visit_date
+        and a.utm_source = m.utm_source
+        and a.utm_medium = m.utm_medium
+        and a.utm_campaign = m.utm_campaign
+order by
+    a.revenue desc nulls last,
+    a.visit_date asc,
+    a.visitors_count desc,
+    a.utm_source asc,
+    a.utm_medium asc,
+    a.utm_campaign asc
 limit 15
