@@ -79,11 +79,5 @@ left join marketing_data as m
         and a.utm_source = m.utm_source
         and a.utm_medium = m.utm_medium
         and a.utm_campaign = m.utm_campaign
-order by
-    a.revenue desc nulls last,
-    a.visit_date asc,
-    a.visitors_count desc,
-    a.utm_source asc,
-    a.utm_medium asc,
-    a.utm_campaign asc
+order by 9 desc nulls last, 1, 2 desc, 3, 4
 limit 15
