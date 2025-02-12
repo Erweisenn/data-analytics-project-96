@@ -20,9 +20,9 @@ last_paid_click AS (
         ps.utm_source,
         ps.utm_medium,
         ps.utm_campaign
-    FROM paid_sessions as ps
-    LEFT JOIN leads as l
-    	ON ps.visitor_id = l.visitor_id
+    FROM paid_sessions AS ps
+    LEFT JOIN leads AS l
+		ON ps.visitor_id = l.visitor_id
     WHERE ps.rn = 1 AND (ps.visit_date <= l.created_at OR l.created_at IS NULL)
 ),
 
@@ -38,9 +38,10 @@ final_data AS (
         l.amount,
         l.closing_reason,
         l.status_id
-    FROM last_paid_click as lpc
-    LEFT JOIN leads as l
-		ON lpc.visitor_id = l.visitor_id
+    FROM last_paid_click AS lpc
+    LEFT JOIN leads AS l
+		ON
+			lpc.visitor_id = l.visitor_id
 			AND lpc.visit_date <= l.created_at
 )
 
