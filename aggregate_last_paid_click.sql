@@ -10,7 +10,9 @@ with all_data as (
         s.medium as utm_medium,
         s.campaign as utm_campaign,
         lower(s.source) as utm_source,
-        row_number() over (partition by s.visitor_id order by s.visit_date desc) as rn
+        row_number() over (
+        	partition by s.visitor_id order by s.visit_date desc
+        ) as rn
     from sessions as s
     left join leads as l
         on
@@ -18,6 +20,7 @@ with all_data as (
             and s.visit_date <= l.created_at
     where s.medium != 'organic'
 ),
+
 aggregated_data as (
     select
         utm_source,
@@ -32,6 +35,7 @@ aggregated_data as (
     where rn = 1
     group by 1, 2, 3, 4
 ),
+
 marketing_data as (
     select
         date(campaign_date) as visit_date,
@@ -51,6 +55,7 @@ marketing_data as (
     from vk_ads
     group by 1, 2, 3, 4
 )
+
 select
     a.visit_date,
     a.visitors_count,
@@ -68,10 +73,10 @@ left join marketing_data as m
         and a.utm_source = m.utm_source
         and a.utm_medium = m.utm_medium
         and a.utm_campaign = m.utm_campaign
-order by revenue desc nulls last,
-	visit_date,
-	visitors_count desc,
-	utm_source,
-	utm_medium,
-	utm_campaign
+order by a.revenue desc nulls last,
+	a.visit_date,
+	a.visitors_count desc,
+	a.utm_source,
+	a.utm_medium,
+	a.utm_campaign
 limit 15;
