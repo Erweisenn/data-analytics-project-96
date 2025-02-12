@@ -1,5 +1,5 @@
 with all_data as (
-    select
+	select
         s.visitor_id,
         s.visit_date,
         l.lead_id,
@@ -28,10 +28,14 @@ aggregated_data as (
         utm_campaign,
         date(visit_date) as visit_date,
         count(visitor_id) as visitors_count,
-        count(case when created_at is not null 
-	    		then visitor_id end) as leads_count,
-        count(case when status_id = 142
-        		then visitor_id end) as purchases_count,
+        count(case
+				when created_at is not null
+	    		then visitor_id
+	    end) as leads_count,
+        count(case
+	        	when status_id = 142
+        		then visitor_id
+        end) as purchases_count,
         sum(case when status_id = 142 then amount end) as revenue
     from all_data
     where rn = 1
@@ -70,10 +74,10 @@ select
     a.revenue
 from aggregated_data as a
 left join marketing_data as m
-    on a.visit_date = m.visit_date
-	and a.utm_source = m.utm_source
-	and a.utm_medium = m.utm_medium
-	and a.utm_campaign = m.utm_campaign
+    	on a.visit_date = m.visit_date
+		and a.utm_source = m.utm_source
+		and a.utm_medium = m.utm_medium
+		and a.utm_campaign = m.utm_campaign
 order by a.revenue desc nulls last,
 	a.visit_date asc,
 	a.visitors_count desc,
