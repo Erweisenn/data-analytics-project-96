@@ -12,6 +12,7 @@ WITH paid_sessions AS (
     FROM sessions
     WHERE medium IN ('cpc', 'cpm', 'cpa', 'youtube', 'cpp', 'tg', 'social')
 ),
+
 last_paid_click AS (
     SELECT
         ps.visitor_id,
@@ -21,9 +22,10 @@ last_paid_click AS (
         ps.utm_campaign
     FROM paid_sessions ps
     LEFT JOIN leads l
-    ON ps.visitor_id = l.visitor_id
+    	ON ps.visitor_id = l.visitor_id
     WHERE ps.rn = 1 AND (ps.visit_date <= l.created_at OR l.created_at IS NULL)
 ),
+
 final_data AS (
     SELECT
         lpc.visitor_id,
@@ -38,9 +40,10 @@ final_data AS (
         l.status_id
     FROM last_paid_click lpc
     LEFT JOIN leads l
-    ON lpc.visitor_id = l.visitor_id
+    	ON lpc.visitor_id = l.visitor_id
     AND lpc.visit_date <= l.created_at
 )
+
 SELECT
     visitor_id,
     visit_date,
@@ -59,4 +62,4 @@ ORDER BY
     utm_source ASC,
     utm_medium ASC,
     utm_campaign asc
-LIMIT 10;
+LIMIT 10

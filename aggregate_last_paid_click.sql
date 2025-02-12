@@ -11,7 +11,7 @@ with all_data as (
         s.campaign as utm_campaign,
         lower(s.source) as utm_source,
         row_number() over (
-        	partition by s.visitor_id order by s.visit_date desc
+			partition by s.visitor_id order by s.visit_date desc
         ) as rn
     from sessions as s
     left join leads as l
@@ -28,9 +28,11 @@ aggregated_data as (
         utm_campaign,
         date(visit_date) as visit_date,
         count(visitor_id) as visitors_count,
-        count(case when created_at is not null then visitor_id end) as leads_count, /* Лиды с визитами */
-        count(case when status_id = 142 then visitor_id end) as purchases_count, /* Закрытые лиды */
-        sum(case when status_id = 142 then amount end) as revenue /* Закрытые лиды */
+        count(case when created_at is not null 
+	    		then visitor_id end) as leads_count,
+        count(case when status_id = 142
+        		then visitor_id end) as purchases_count,
+        sum(case when status_id = 142 then amount end) as revenue
     from all_data
     where rn = 1
     group by 1, 2, 3, 4
@@ -68,15 +70,14 @@ select
     a.revenue
 from aggregated_data as a
 left join marketing_data as m
-    on
-        a.visit_date = m.visit_date
-        and a.utm_source = m.utm_source
-        and a.utm_medium = m.utm_medium
-        and a.utm_campaign = m.utm_campaign
+    on a.visit_date = m.visit_date
+	and a.utm_source = m.utm_source
+	and a.utm_medium = m.utm_medium
+	and a.utm_campaign = m.utm_campaign
 order by a.revenue desc nulls last,
-	a.visit_date,
+	a.visit_date asc,
 	a.visitors_count desc,
-	a.utm_source,
-	a.utm_medium,
-	a.utm_campaign
-limit 15;
+	a.utm_source asc,
+	a.utm_medium asc,
+	a.utm_campaign asc
+limit 15
