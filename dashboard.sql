@@ -1,58 +1,62 @@
 WITH costs AS (
-    SELECT 
+    SELECT
         utm_source,
         SUM(daily_spent) AS total_cost
-    FROM 
+    FROM
         (
-            SELECT 
+            SELECT
                 utm_source,
                 daily_spent
-            FROM 
+            FROM
                 vk_ads
             UNION ALL
-            SELECT 
+            SELECT
                 utm_source,
                 daily_spent
-            FROM 
+            FROM
                 ya_ads
         ) AS combined_ads
-    GROUP BY 
+    GROUP BY
         utm_source
 ),
+
 visitors AS (
-    SELECT 
+    SELECT
         source AS utm_source,
         COUNT(DISTINCT visitor_id) AS visitors_count
-    FROM 
+    FROM
         sessions
-    GROUP BY 
+    GROUP BY
         source
 ),
+
 leads AS (
-    SELECT 
+    SELECT
         s.source AS utm_source,
         COUNT(DISTINCT l.lead_id) AS leads_count
-    FROM 
-        sessions s
-    LEFT JOIN 
-        leads l ON s.visitor_id = l.visitor_id
-    GROUP BY 
+    FROM
+        sessions AS s
+    LEFT JOIN
+        leads AS l ON s.visitor_id = l.visitor_id
+    GROUP BY
         s.source
 ),
+
 purchases AS (
-    SELECT 
+    SELECT
         s.source AS utm_source,
         COUNT(DISTINCT l.lead_id) AS purchases_count,
         SUM(l.amount) AS total_revenue
     FROM
-        sessions s
-    JOIN 
-        leads l 
+        sessions AS s
+    INNER JOIN
+        leads AS l
         ON s.visitor_id = l.visitor_id
-    GROUP BY 
+    GROUP BY
         s.source
 )
-SELECT 
+
+SELECT
     v.utm_source,
     v.visitors_count,
     l.leads_count,
@@ -63,11 +67,11 @@ SELECT
     (c.total_cost / l.leads_count) AS cpl,
     (c.total_cost / p.purchases_count) AS cppu,
     ((p.total_revenue - c.total_cost) / c.total_cost) * 100 AS roi
-FROM 
-    visitors v
-JOIN 
-    leads l ON v.utm_source = l.utm_source
-JOIN 
-    purchases p ON v.utm_source = p.utm_source
-JOIN 
-    costs c ON v.utm_source = c.utm_source;
+FROM
+    visitors AS v
+INNER JOIN
+    leads AS l ON v.utm_source = l.utm_source
+INNER JOIN
+    purchases AS p ON v.utm_source = p.utm_source
+INNER JOIN
+    costs AS c ON v.utm_source = c.utm_source;
