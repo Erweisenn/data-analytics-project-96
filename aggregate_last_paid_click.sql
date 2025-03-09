@@ -23,9 +23,9 @@ with all_data as (
 
 counts as (
     select
+        lower(utm_source) as utm_source,
         utm_medium,
         utm_campaign,
-        lower(utm_source) as utm_source,
         visit_date::date as visit_date,
         count(visitor_id) as visitors_count,
         count(case
