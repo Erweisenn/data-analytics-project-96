@@ -9,7 +9,7 @@ with all_data as (
         l.status_id,
         s.medium as utm_medium,
         s.campaign as utm_campaign,
-        lower(s.source) as utm_source,
+        s.source as utm_source,
         row_number() over (
             partition by s.visitor_id order by s.visit_date desc
         ) as rn
@@ -21,12 +21,12 @@ with all_data as (
     where s.medium != 'organic'
 ),
 
-aggregated_data as (
+counts as (
     select
-        utm_source,
+        lower(utm_source) as utm_source,
         utm_medium,
         utm_campaign,
-        date(visit_date) as visit_date,
+        visit_date::date as visit_date,
         count(visitor_id) as visitors_count,
         count(case
             when created_at is not null
@@ -42,42 +42,52 @@ aggregated_data as (
     group by 1, 2, 3, 4
 ),
 
-marketing_data as (
+vk_total as (
     select
-        date(campaign_date) as visit_date,
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        sum(daily_spent) as total_cost
-    from ya_ads
-    group by 1, 2, 3, 4
-    union /* Убираем дублирования */
-    select
-        date(campaign_date) as visit_date,
+        campaign_date::date as campaign_date,
         utm_source,
         utm_medium,
         utm_campaign,
         sum(daily_spent) as total_cost
     from vk_ads
     group by 1, 2, 3, 4
+),
+
+yandex_total as (
+    select
+        campaign_date::date as campaign_date,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        sum(daily_spent) as total_cost
+    from ya_ads
+    group by 1, 2, 3, 4
+),
+
+totals as (
+    select *
+    from vk_total
+    union /* Убираем дублирования */
+    select *
+    from yandex_total
 )
 
 select
-    a.visit_date,
-    a.visitors_count,
-    a.utm_source,
-    a.utm_medium,
-    a.utm_campaign,
-    m.total_cost,
-    a.leads_count,
-    a.purchases_count,
-    a.revenue
-from aggregated_data as a
-left join marketing_data as m
+    c.visit_date,
+    c.visitors_count,
+    c.utm_source,
+    c.utm_medium,
+    c.utm_campaign,
+    t.total_cost,
+    c.leads_count,
+    c.purchases_count,
+    c.revenue
+from counts as c
+left join totals as t
     on
-        a.visit_date = m.visit_date
-        and a.utm_source = m.utm_source
-        and a.utm_medium = m.utm_medium
-        and a.utm_campaign = m.utm_campaign
+        c.visit_date = t.campaign_date
+        and c.utm_source = t.utm_source
+        and c.utm_medium = t.utm_medium
+        and c.utm_campaign = t.utm_campaign
 order by 9 desc nulls last, 1, 2 desc, 3, 4
 limit 15
