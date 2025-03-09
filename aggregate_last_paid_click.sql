@@ -23,19 +23,17 @@ with all_data as (
 
 counts as (
     select
-        lower(utm_source) as utm_source,
+        utm_source,
         utm_medium,
         utm_campaign,
-        visit_date::date as visit_date,
+        date(visit_date) as visit_date,
         count(visitor_id) as visitors_count,
-        count(case
-            when created_at is not null
-                then visitor_id
-        end) as leads_count,
-        count(case
-            when status_id = 142
-                then visitor_id
-        end) as purchases_count,
+        count(
+            case
+                when created_at is not null then visitor_id
+            end
+        ) as leads_count,
+        count(case when status_id = 142 then visitor_id end) as purchases_count,
         sum(case when status_id = 142 then amount end) as revenue
     from all_data
     where rn = 1
